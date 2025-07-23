@@ -2,3 +2,4 @@ flask
 sentence-transformers
 rapidfuzz
 torch
+gunicorn
