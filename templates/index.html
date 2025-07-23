@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ku">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zana Chatbot</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+    /* Reset & base */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0; padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+        Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background: linear-gradient(135deg, #e0f2fe, #d1fae5);
+      color: #333;
+    }
+
+    header {
+      background-color: #2563eb; /* blue-600 */
+      color: #f9fafb; /* gray-50 */
+      font-weight: 600;
+      font-size: 1.6rem;
+      padding: 1rem 1.5rem;
+      text-align: center;
+      box-shadow: 0 2px 6px rgb(37 99 235 / 0.3);
+      user-select: none;
+    }
+
+    #chatbox {
+      flex-grow: 1;
+      padding: 1rem 1.5rem;
+      overflow-y: auto;
+      background: #f9fafb;
+      border-radius: 0 0 1rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      scroll-behavior: smooth;
+    }
+
+    /* Scrollbar modern */
+    #chatbox::-webkit-scrollbar {
+      width: 8px;
+    }
+    #chatbox::-webkit-scrollbar-track {
+      background: #e0e7ff;
+      border-radius: 10px;
+    }
+    #chatbox::-webkit-scrollbar-thumb {
+      background-color: #2563eb;
+      border-radius: 10px;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 1rem 1.2rem;
+      border-radius: 1.2rem;
+      line-height: 1.4;
+      font-size: 1rem;
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.8rem;
+      box-shadow: 0 3px 8px rgb(0 0 0 / 0.05);
+      word-break: break-word;
+      white-space: pre-wrap;
+      animation: fadeIn 0.25s ease forwards;
+    }
+
+    /* Avatars */
+    .avatar {
+      min-width: 36px;
+      min-height: 36px;
+      border-radius: 50%;
+      background: #2563eb;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      user-select: none;
+      box-shadow: 0 0 6px rgb(37 99 235 / 0.3);
+    }
+    .avatar.bot {
+      background: #16a34a; /* green-600 */
+      box-shadow: 0 0 6px rgb(22 163 74 / 0.3);
+    }
+
+    /* User message style */
+    .from-user {
+      background: #dbeafe; /* blue-100 */
+      color: #1e40af; /* blue-900 */
+      align-self: flex-end;
+      border-bottom-right-radius: 0;
+      flex-direction: row-reverse;
+      gap: 0.8rem;
+    }
+
+    /* Bot message style */
+    .from-bot {
+      background: #dcfce7; /* green-100 */
+      color: #166534; /* green-900 */
+      align-self: flex-start;
+      border-bottom-left-radius: 0;
+    }
+
+    /* Message text container */
+    .message-text {
+      flex-grow: 1;
+      white-space: pre-wrap;
+    }
+
+    /* Sender label */
+    .sender-label {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #64748b; /* gray-500 */
+      margin-bottom: 4px;
+      user-select: none;
+    }
+
+    #input-area {
+      background: white;
+      display: flex;
+      padding: 0.75rem 1rem;
+      border-top: 1px solid #e2e8f0;
+      box-shadow: 0 -2px 10px rgb(0 0 0 / 0.05);
+      border-radius: 0 0 1rem 1rem;
+      gap: 0.8rem;
+    }
+
+    #user-input {
+      flex-grow: 1;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 9999px;
+      padding: 0.75rem 1.25rem;
+      font-size: 1rem;
+      outline-offset: 2px;
+      transition: border-color 0.3s ease;
+      font-family: inherit;
+      resize: none;
+      min-height: 38px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    #user-input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 8px rgb(37 99 235 / 0.4);
+    }
+
+    #send-btn {
+      background: #2563eb;
+      border: none;
+      color: white;
+      padding: 0 1.5rem;
+      font-weight: 700;
+      border-radius: 9999px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    #send-btn:hover:not(:disabled) {
+      background: #1e40af;
+    }
+    #send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #send-btn i {
+      margin-left: 0.4rem;
+    }
+
+    .footer {
+      background: #2563eb;
+      color: #f9fafb;
+      text-align: center;
+      padding: 0.8rem 1rem;
+      font-size: 0.9rem;
+      user-select: none;
+      box-shadow: 0 -2px 6px rgb(37 99 235 / 0.25);
+    }
+
+    .footer-icons {
+      margin-top: 0.4rem;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .footer-icons a {
+      color: #f9fafb;
+      font-size: 1.4rem;
+      transition: color 0.3s ease;
+      text-decoration: none;
+    }
+
+    .footer-icons a:hover {
+      color: #a7f3d0; /* teal-200 */
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      #chatbox {
+        padding: 0.8rem 1rem;
+      }
+      .message {
+        max-width: 90%;
+        font-size: 0.95rem;
+      }
+      #input-area {
+        padding: 0.5rem 0.8rem;
+      }
+      #user-input {
+        font-size: 0.95rem;
+        min-height: 36px;
+      }
+      #send-btn {
+        font-size: 1rem;
+        padding: 0 1.2rem;
+      }
+      .footer-icons a {
+        font-size: 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>Zana Chatbot 🤖</header>
+
+  <main id="chatbox" role="log" aria-live="polite" aria-relevant="additions"></main>
+
+  <form id="input-area" onsubmit="return sendMessage(event);" aria-label="Send message form">
+    <textarea
+      id="user-input"
+      placeholder="Bi Kurdî biaxivî..."
+      autocomplete="off"
+      rows="1"
+      required
+      aria-label="Message input"
+    ></textarea>
+    <button id="send-btn" type="submit" title="Bişîne" aria-label="Send message">
+      Bişîne <i class="fas fa-paper-plane"></i>
+    </button>
+  </form>
+
+  <footer class="footer">
+    Contact me:
+    <div class="footer-icons" role="navigation" aria-label="Social media links">
+      <a href="mailto:furkanbilmez8@gmail.com" title="Email" aria-label="Email">
+        <i class="fas fa-envelope"></i>
+      </a>
+      <a
+        href="https://github.com/furkanbilmez"
+        target="_blank"
+        title="GitHub"
+        rel="noopener noreferrer"
+        aria-label="GitHub"
+      >
+        <i class="fab fa-github"></i>
+      </a>
+      <a
+        href="https://www.linkedin.com/in/furkanbilmez"
+        target="_blank"
+        title="LinkedIn"
+        rel="noopener noreferrer"
+        aria-label="LinkedIn"
+      >
+        <i class="fab fa-linkedin"></i>
+      </a>
+    </div>
+  </footer>
+
+  <script>
+    const chatbox = document.getElementById("chatbox");
+    const userInput = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+
+    // Append message to chatbox with avatar and label
+    function appendMessage(sender, text) {
+      const msgDiv = document.createElement("div");
+      msgDiv.classList.add("message");
+      msgDiv.classList.add(sender === "user" ? "from-user" : "from-bot");
+
+      // Avatar
+      const avatar = document.createElement("div");
+      avatar.classList.add("avatar");
+      avatar.classList.add(sender === "user" ? "user" : "bot");
+      avatar.innerHTML = sender === "user" ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+      msgDiv.appendChild(avatar);
+
+      // Message content container
+      const content = document.createElement("div");
+      content.style.display = "flex";
+      content.style.flexDirection = "column";
+
+      // Sender label
+      const labelDiv = document.createElement("div");
+      labelDiv.classList.add("sender-label");
+      labelDiv.textContent = sender === "user" ? "Tu" : "Zana";
+      content.appendChild(labelDiv);
+
+      // Message text
+      const textDiv = document.createElement("div");
+      textDiv.classList.add("message-text");
+      textDiv.textContent = text;
+      content.appendChild(textDiv);
+
+      msgDiv.appendChild(content);
+
+      chatbox.appendChild(msgDiv);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    // Send message to backend and display response
+    async function sendMessage(event) {
+      event.preventDefault();
+
+      const message = userInput.value.trim();
+      if (!message) return false;
+
+      appendMessage("user", message);
+      userInput.value = "";
+      userInput.disabled = true;
+      sendBtn.disabled = true;
+
+      try {
+        const response = await fetch("/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message }),
+        });
+        const data = await response.json();
+        appendMessage("bot", data.response);
+      } catch (error) {
+        appendMessage("bot", "Xeta heye. Ji kerema xwe dîsa ceribê bike.");
+      } finally {
+        userInput.disabled = false;
+        sendBtn.disabled = false;
+        userInput.focus();
+      }
+      return false;
+    }
+
+    // Focus input on load and show welcome message only once
+    window.onload = () => {
+      userInput.focus();
+      appendMessage("bot", "Bi xêr hatî! Ji kerema xwe pirraniya peyvên xwe bi Kurdî biaxivî.");
+    };
+
+    // Auto resize textarea for better UX
+    userInput.addEventListener("input", () => {
+      userInput.style.height = "auto";
+      userInput.style.height = userInput.scrollHeight + "px";
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+flask
+sentence-transformers
+rapidfuzz
+torch
