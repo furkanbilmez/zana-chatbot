@@ -1,5 +1,12 @@
-flask
-sentence-transformers
-rapidfuzz
-torch
-gunicorn
+Flask==2.0.1
+Werkzeug==2.0.3
+sentence-transformers==2.2.2
+rapidfuzz==2.15.1
+torch==2.0.1
+wikipedia==1.4.0
+langdetect==1.0.9
+gunicorn==20.1.0
+google-cloud-storage==2.7.0
+google-cloud-logging==3.5.0
+flask-sqlalchemy==2.5.1
+huggingface-hub==0.17.3
